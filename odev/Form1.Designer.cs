@@ -467,7 +467,7 @@
             Controls.Add(sensor1_ch);
             Controls.Add(sensor0_ch);
             Name = "Form1";
-            Text = "Form1";
+            Text = "Model Uydu / İHA Arayüzü";
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)sensor0_ch).EndInit();
             ((System.ComponentModel.ISupportInitialize)sensor1_ch).EndInit();

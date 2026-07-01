@@ -1,7 +1,4 @@
 using GMap.NET;
-using GMap.NET.MapProviders;
-using GMap.NET.WindowsForms;
-using GMap.NET.WindowsForms.Markers;
 using System;
 using System.Drawing.Text;
 using System.IO;
@@ -369,14 +366,17 @@ namespace odev
             double pt = pitch * Math.PI / 180.0;
             double y = yaw * Math.PI / 180.0;
 
+            // Yaw yani z eksenide dönme 
             double x1 = p.X * Math.Cos(y) - p.Y * Math.Sin(y);
             double y1 = p.X * Math.Sin(y) + p.Y * Math.Cos(y);
             double z1 = p.Z;
 
+            // Pitch yani y ekseninde dönme
             double x2 = x1 * Math.Cos(pt) + z1 * Math.Sin(pt);
             double y2 = y1;
             double z2 = -x1 * Math.Sin(pt) + z1 * Math.Cos(pt);
 
+            // Roll yani x ekseninde dönme 
             double x3 = x2;
             double y3 = y2 * Math.Cos(r) - z2 * Math.Sin(r);
 
@@ -397,6 +397,7 @@ namespace odev
                 g.FillRectangle(sky, 0, 0, panel1.Width, cy);
                 g.FillRectangle(ground, 0, cy, panel1.Height, panel1.Height - cy);
             }
+
             g.TranslateTransform(cx, cy);
 
             Nokta3D[] koseler = new Nokta3D[4]
@@ -408,6 +409,7 @@ namespace odev
             };
 
             PointF[] ekranNoktalari = new PointF[4];
+
             for (int i = 0; i < 4; i++)
             {
                 ekranNoktalari[i] = UcBoyutluDondur(koseler[i], anlikRoll, anlikPitch, anlikYaw);
