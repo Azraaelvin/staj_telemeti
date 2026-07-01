@@ -13,19 +13,17 @@ namespace odev
 {
     public partial class Form1 : Form
     {
-        private string[] telemetrypacket;
+        private string[] telemetryPacket;
         private int rowindex = 0;
-        private float anlýkRoll = 0;
-        private float anlýkPitch = 0;
-        private float anlýkYaw = 0;
+        private float anlikRoll = 0;
+        private float anlikPitch = 0;
+        private float anlikYaw = 0;
         private long beklenenPaketNo = -1;
-        private int toplamBaþarýlýPaket = 0;
+        private int toplamBaþariliPaket = 0;
         private int toplamAtlananPaket = 0;
         private double[] zScorelar = new double[15];
         private Queue<double>[] sensorGecmisleri = new Queue<double>[8];
         private Queue<double> batteryGecmisi = new Queue<double>();
-        private GMarkerGoogle marker;
-        private GMapOverlay overlay = new GMapOverlay("gps");
 
         public Form1()
         {
@@ -51,10 +49,12 @@ namespace odev
             string dosyaAdi = "C:\\Users\\azrag\\OneDrive\\Desktop\\odev\\telemetry_clean.csv";
             try
             {
-                timer1.Stop();
-                rowindex = 0;
-                beklenenPaketNo = -1;
-                telemetrypacket = File.ReadAllLines(dosyaAdi);
+                yenidenBaslat();
+
+                button1.Enabled = false;
+                button2.Enabled = true;
+
+                telemetryPacket = File.ReadAllLines(dosyaAdi);
                 timer1.Start();
             }
             catch
@@ -66,23 +66,24 @@ namespace odev
 
         private void button2_Click(object sender, EventArgs e)
         {
-            string sifreliDosyaAdý = "C:\\Users\\azrag\\OneDrive\\Desktop\\odev\\telemetry_encrypted.csv";
+            string sifreliDosyaAdi = "C:\\Users\\azrag\\OneDrive\\Desktop\\odev\\telemetry_encrypted.csv";
             try
             {
-                timer1.Stop();
-                rowindex = 0;
-                beklenenPaketNo = -1;
+                yenidenBaslat();
 
-                string[] sifreliVeri = File.ReadAllLines(sifreliDosyaAdý);
-                telemetrypacket = new string[sifreliVeri.Length];
+                button2.Enabled = false;
+                button1.Enabled = true;
+               
+                string[] sifreliVeri = File.ReadAllLines(sifreliDosyaAdi);
+                telemetryPacket = new string[sifreliVeri.Length];
                 for (int i = 0; i < sifreliVeri.Length; i++)
                 {
                     string temizSatir = sifreliVeri[i].Trim();
                     if (!string.IsNullOrEmpty(temizSatir))
                     {
-                        telemetrypacket[i] = sifreyicoz(temizSatir).Trim();
+                        telemetryPacket[i] = sifreyiCoz(temizSatir).Trim();
                     }
-                    else telemetrypacket[i] = string.Empty;
+                    else telemetryPacket[i] = string.Empty;
                 }
 
                 timer1.Start();
@@ -93,7 +94,50 @@ namespace odev
             }
         }
 
-        private string sifreyicoz(string temizSatir)
+        private void yenidenBaslat()
+        {
+            timer1.Stop();
+            rowindex = 0;
+            beklenenPaketNo = -1;
+            toplamAtlananPaket = 0;
+            telemetryPacket = null;
+
+            anlikPitch = 0;
+            anlikRoll = 0;
+            anlikYaw = 0;
+
+            listBox1.Items.Clear();
+            listBox2.Items.Clear();
+
+            batteryGecmisi.Clear();
+            for (int i = 0; i < 8; i++) 
+            {
+                sensorGecmisleri[i].Clear();
+                string grafikIsmi = "sensor" + i + "_ch";
+                var dinamikgrafik = this.Controls.Find(grafikIsmi,true).FirstOrDefault() as System.Windows.Forms.DataVisualization.Charting.Chart;
+
+                if (dinamikgrafik != null) 
+                {
+                    string sensorIsmi = "sensor" + i;
+
+                    var hedefsensor=dinamikgrafik.Series.FindByName(sensorIsmi);
+
+                    if (hedefsensor != null) 
+                    {
+                        dinamikgrafik.Series[sensorIsmi].Points.Clear();
+                    }
+                }
+            }
+
+            if (batarya_ch != null) 
+            {
+                batarya_ch.Series["battery"].Points.Clear();
+            }
+
+
+        }
+
+        private string sifreyiCoz(string temizSatir)
         {
             string keyývyolu = "C:\\Users\\azrag\\OneDrive\\Desktop\\odev\\keyýv.csv";
             string keyýv = File.ReadAllText(keyývyolu).Trim();
@@ -125,20 +169,20 @@ namespace odev
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (telemetrypacket == null || telemetrypacket.Length == null)
+            if (telemetryPacket == null || telemetryPacket.Length == null)
             {
                 label2.Text = "Hayýr";
                 return;
             }
-            if (rowindex >= telemetrypacket.Length)
+            if (rowindex >= telemetryPacket.Length)
             {
                 rowindex = 0;
             }
-            string Row = telemetrypacket[rowindex];
+            string Row = telemetryPacket[rowindex];
 
             if (string.IsNullOrEmpty(Row))
             {
-                listBox1.Items.Add($"[{DateTime.Now:HH:mm:ss} Satýr {rowindex} : BOÞ VERÝ - Satýr içeriði Boþ geldi.]");
+                listBox1.Items.Insert(0,$"[{DateTime.Now:HH:mm:ss} Satýr {rowindex} : BOÞ VERÝ - Satýr içeriði Boþ geldi.]");
                 toplamAtlananPaket++;
                 gostergeleriguncelle();
                 return;
@@ -149,7 +193,7 @@ namespace odev
 
             if (data.Length < 15 || data.Length > 16)
             {
-                listBox1.Items.Add($"[{DateTime.Now:HH:mm:ss}] Satýr {rowindex} : Beklenen 15 veri yerine {data.Length} veri geldi! ");
+                listBox1.Items.Insert(0,$"[{DateTime.Now:HH:mm:ss}] Satýr {rowindex} : Beklenen 15 veri yerine {data.Length} veri geldi! ");
             }
 
             if (long.TryParse(data[0], out long gelenpaketno))
@@ -160,14 +204,14 @@ namespace odev
                 {
                     for (long i = beklenenPaketNo; i < gelenpaketno; i += 50)
                     {
-                        listBox1.Items.Add($"[{DateTime.Now:private long beklenenPaketNo = -1;HH:mm:ss}] Paket {i} : ATLANDI ");
+                        listBox1.Items.Insert(0,$"[{DateTime.Now:private long beklenenPaketNo = -1;HH:mm:ss}] Paket {i} : ATLANDI ");
                     }
                     toplamAtlananPaket++;
                     gostergeleriguncelle();
                 }
                 beklenenPaketNo = gelenpaketno + 50;
 
-                toplamBaþarýlýPaket++;
+                toplamBaþariliPaket++;
                 gostergeleriguncelle();
             }
 
@@ -222,9 +266,9 @@ namespace odev
                         }
                     }
                 }
-                anlýkPitch = pitch;
-                anlýkRoll = roll;
-                anlýkRoll = yaw;
+                anlikPitch = pitch;
+                anlikRoll = roll;
+                anlikYaw = yaw;
 
                 panel1.Invalidate();
             }
@@ -239,19 +283,6 @@ namespace odev
         private void gpshesapla(double gps_lat, double gps_lon)
         {
             PointLatLng konum = new PointLatLng(gps_lat, gps_lon);
-
-            if (marker == null)
-            {
-                marker = new GMarkerGoogle(konum, GMarkerGoogleType.red_dot);
-
-                overlay.Markers.Add(marker);
-                gMapControl1.Overlays.Add(overlay);
-            }
-            else
-            {
-                marker.Position = konum;
-            }
-
             gMapControl1.Position = konum;
         }
 
@@ -296,28 +327,28 @@ namespace odev
                 }
             }
             zScorelar[8] = batteryZScore;
-            listBox2.Items.Add($"--- Voltaj/Sensör Analizi [{paketNo}] ---");
+            listBox2.Items.Insert(0,$"--- Voltaj/Sensör Analizi [{paketNo}] ---");
             for (int i = 0; i < zScorelar.Length; i++)
             {
                 if (i < 8)
                     if (zScorelar[i] >3 || zScorelar[i] < -3)
-                    listBox2.Items.Add($"Dizi[{i}] (Sensor{i} Z-Score): {zScorelar[i]:F4} ANORMAL DAVRANIÞ");
-                    else listBox2.Items.Add($"Dizi[{i}] (Sensor{i} Z-Score): {zScorelar[i]:F4}");
+                    listBox2.Items.Insert(0,$"Dizi[{i}] (Sensor{i} Z-Score): {zScorelar[i]:F4} ANORMAL DAVRANIÞ");
+                    else listBox2.Items.Insert(0,$"Dizi[{i}] (Sensor{i} Z-Score): {zScorelar[i]:F4}");
 
                 else if (i == 8)
                         if(zScorelar[i] > 3 || zScorelar[i] < -3) listBox2.Items.Add($"Dizi[{i}] (BATARYA Z-Score): {zScorelar[i]:F4} ANORMAL DAVRANIÞ");
-                        else listBox2.Items.Add($"Dizi[{i}] (BATARYA Z-Score): {zScorelar[i]:F4}");
+                        else listBox2.Items.Insert(0,$"Dizi[{i}] (BATARYA Z-Score): {zScorelar[i]:F4}");
             }
         }
 
         private void gostergeleriguncelle()
         {
-            int toplamPaket = toplamBaþarýlýPaket + toplamAtlananPaket;
+            int toplamPaket = toplamBaþariliPaket + toplamAtlananPaket;
 
             if (toplamPaket == 0) return;
 
             double kayipOrani = ((double)toplamAtlananPaket / toplamPaket) * 100;
-            double saðliklioran = ((double)toplamBaþarýlýPaket / toplamPaket) * 100;
+            double saðliklioran = ((double)toplamBaþariliPaket / toplamPaket) * 100;
 
             kayiporanilb.Text = $"%{kayipOrani:F2}";
             verisaglýgýlb.Text = $"%{saðliklioran:F2}";
@@ -379,7 +410,7 @@ namespace odev
             PointF[] ekranNoktalari = new PointF[4];
             for (int i = 0; i < 4; i++)
             {
-                ekranNoktalari[i] = UcBoyutluDondur(koseler[i], anlýkRoll, anlýkPitch, anlýkYaw);
+                ekranNoktalari[i] = UcBoyutluDondur(koseler[i], anlikRoll, anlikPitch, anlikYaw);
             }
 
             using (Pen yesilKalem = new Pen(Color.White, 4))

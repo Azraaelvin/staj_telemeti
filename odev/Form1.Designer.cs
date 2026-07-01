@@ -82,7 +82,6 @@
             button2 = new Button();
             listBox2 = new ListBox();
             label6 = new Label();
-            label7 = new Label();
             gMapControl1 = new GMap.NET.WindowsForms.GMapControl();
             ((System.ComponentModel.ISupportInitialize)sensor0_ch).BeginInit();
             ((System.ComponentModel.ISupportInitialize)sensor1_ch).BeginInit();
@@ -413,20 +412,11 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(1136, 766);
+            label6.Location = new Point(1136, 775);
             label6.Name = "label6";
-            label6.Size = new Size(38, 15);
+            label6.Size = new Size(193, 15);
             label6.TabIndex = 16;
-            label6.Text = "label6";
-            // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Location = new Point(1199, 766);
-            label7.Name = "label7";
-            label7.Size = new Size(38, 15);
-            label7.TabIndex = 17;
-            label7.Text = "label7";
+            label6.Text = "Z-Core Değerlerinin Gösterildiği Yer";
             // 
             // gMapControl1
             // 
@@ -460,7 +450,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1904, 1041);
             Controls.Add(gMapControl1);
-            Controls.Add(label7);
             Controls.Add(label6);
             Controls.Add(listBox2);
             Controls.Add(button2);
@@ -524,7 +513,6 @@
         private Button button2;
         private ListBox listBox2;
         private Label label6;
-        private Label label7;
         private GMap.NET.WindowsForms.GMapControl gMapControl1;
     }
 }
